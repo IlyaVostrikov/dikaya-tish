@@ -1,0 +1,8 @@
+<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Delicate tea leaf / botanical element for Дикая Тишь -->
+  <path d="M12 22 C12 22, 4 18, 3 12 C2 6, 6 2, 12 2 C18 2, 22 6, 21 12 C20 18, 12 22, 12 22Z"
+    stroke="currentColor" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+  <path d="M12 22 C12 18, 11 10, 12 2" stroke="currentColor" stroke-width="0.5" fill="none" stroke-linecap="round"/>
+  <path d="M8 8 C10 7, 11 8, 12 10" stroke="currentColor" stroke-width="0.4" fill="none" stroke-linecap="round"/>
+  <path d="M16 8 C14 7, 13 8, 12 10" stroke="currentColor" stroke-width="0.4" fill="none" stroke-linecap="round"/>
+</svg>
