@@ -22,8 +22,8 @@ function WildMountains() {
     []
   );
 
-  const onClick = useCallback((e: THREE.Event) => {
-    const uv = e.uv as THREE.Vector2;
+  const onClick = useCallback((e: { uv: THREE.Vector2 }) => {
+    const uv = e.uv;
     const r = ripples.current;
     r.push({ pos: uv.clone(), birth: performance.now() * 0.001 });
     if (r.length > MAX_RIPPLES) r.shift();
