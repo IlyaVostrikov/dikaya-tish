@@ -25,6 +25,20 @@
   scrollbar-color: #B7C5BD transparent;
 }
 
+/* ===== Safe-area padding utilities ===== */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.safe-left {
+  padding-left: env(safe-area-inset-left);
+}
+.safe-right {
+  padding-right: env(safe-area-inset-right);
+}
+
 body {
   background: #E9E0D8;
   color: #1F3A34;
@@ -42,7 +56,7 @@ body::after {
   background-repeat: repeat;
   background-size: 256px 256px;
   pointer-events: none;
-  z-index: 9999;
+  z-index: 1;
 }
 
 html {
@@ -384,10 +398,22 @@ h1, h2, h3, h4, .serif {
 @media (max-width: 767px) {
   .fog-fast,
   .fog-medium,
-  .fog-foreground {
+  .fog-foreground,
+  .fog-slow {
     display: none;
   }
+}
 
+/* Prevent double-tap zoom on interactive elements */
+button, a, input, textarea, select {
+  touch-action: manipulation;
+}
+
+/* iOS Safari: prevent auto-zoom on input focus (needs 16px minimum) */
+@media (max-width: 767px) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
 }
 
 .fog-foreground {

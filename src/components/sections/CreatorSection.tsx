@@ -61,13 +61,13 @@ export default function CreatorSection() {
       <motion.div style={{ opacity }} className="relative z-10 max-w-[1400px] mx-auto w-full">
         {/* Asymmetric split: left carousel (40%) + right text (60%) */}
         <div className="grid md:grid-cols-[2fr_3fr] gap-12 md:gap-20 items-center">
-          {/* Left column — image carousel */}
+          {/* Left column — image carousel (desktop only) */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] as const, delay: 0.3 }}
-            className="flex flex-col items-center md:items-start"
+            className="hidden md:flex flex-col items-center md:items-start"
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
           >
