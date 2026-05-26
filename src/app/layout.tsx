@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "@fontsource/cormorant-garamond/300.css";
 import "@fontsource/cormorant-garamond/400.css";
 import "@fontsource/cormorant-garamond/500.css";
-import "@fontsource/inter/300.css";
-import "@fontsource/inter/400.css";
+import "@fontsource/outfit/300.css";
+import "@fontsource/outfit/400.css";
+import "@fontsource/outfit/500.css";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 
@@ -26,6 +27,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru" className="scroll-smooth" data-scroll-behavior="smooth">
+      <head>
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
+      </head>
       <body className="min-h-screen bg-cream text-forest antialiased">
         <Header />
         {children}

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { countries } from "@/data/countries";
+import { getLocalImage } from "@/lib/images";
 
 function CountryImage({
   query,
@@ -14,26 +14,7 @@ function CountryImage({
   alt: string;
   side: "left" | "right";
 }) {
-  const [imgSrc, setImgSrc] = useState<string | null>(null);
-  const [state, setState] = useState<"loading" | "loaded" | "error">("loading");
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch(`/api/unsplash?query=${encodeURIComponent(query)}`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (!cancelled && d.url) {
-          setImgSrc(d.url);
-          setState("loaded");
-        } else if (!cancelled) {
-          setState("error");
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setState("error");
-      });
-    return () => { cancelled = true; };
-  }, [query]);
+  const src = getLocalImage(query);
 
   return (
     <div
@@ -41,22 +22,10 @@ function CountryImage({
         side === "right" ? "md:order-2" : ""
       }`}
     >
-      {state === "loading" && (
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_1.8s_ease-in-out_infinite]" />
-      )}
-
-      {state === "error" && (
-        <div className="absolute inset-0 bg-gradient-to-br from-mist/30 via-ivory to-sage/20 flex items-center justify-center">
-          <span className="text-forest/25 text-[10px] tracking-[0.15em] uppercase">
-            Изображение недоступно
-          </span>
-        </div>
-      )}
-
-      {imgSrc && (
+      {src && (
         <>
           <img
-            src={imgSrc}
+            src={src}
             alt={alt}
             loading="lazy"
             className="watercolor-img absolute inset-0 w-full h-full object-cover"
