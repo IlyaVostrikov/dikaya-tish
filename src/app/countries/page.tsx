@@ -5,41 +5,93 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { countries } from "@/data/countries";
 
-export default function CountriesPage() {
-  const [images, setImages] = useState<Record<string, string>>({});
+function CountryImage({
+  query,
+  alt,
+  side,
+}: {
+  query: string;
+  alt: string;
+  side: "left" | "right";
+}) {
+  const [imgSrc, setImgSrc] = useState<string | null>(null);
+  const [state, setState] = useState<"loading" | "loaded" | "error">("loading");
 
   useEffect(() => {
-    countries.forEach((c) => {
-      fetch(`/api/unsplash?query=${encodeURIComponent(c.imageQuery)}`)
-        .then((r) => r.json())
-        .then((d) => {
-          if (d.url) setImages((prev) => ({ ...prev, [c.slug]: d.url }));
-        })
-        .catch(() => {});
-    });
-  }, []);
+    let cancelled = false;
+    fetch(`/api/unsplash?query=${encodeURIComponent(query)}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (!cancelled && d.url) {
+          setImgSrc(d.url);
+          setState("loaded");
+        } else if (!cancelled) {
+          setState("error");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setState("error");
+      });
+    return () => { cancelled = true; };
+  }, [query]);
 
   return (
-    <main className="min-h-screen bg-cream pt-32 pb-40 px-6">
-      <div className="max-w-6xl mx-auto">
+    <div
+      className={`aspect-[4/3] bg-ivory overflow-hidden relative ${
+        side === "right" ? "md:order-2" : ""
+      }`}
+    >
+      {state === "loading" && (
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_1.8s_ease-in-out_infinite]" />
+      )}
+
+      {state === "error" && (
+        <div className="absolute inset-0 bg-gradient-to-br from-mist/30 via-ivory to-sage/20 flex items-center justify-center">
+          <span className="text-forest/25 text-[10px] tracking-[0.15em] uppercase">
+            Изображение недоступно
+          </span>
+        </div>
+      )}
+
+      {imgSrc && (
+        <>
+          <img
+            src={imgSrc}
+            alt={alt}
+            loading="lazy"
+            className="watercolor-img absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="watercolor-wash-overlay" />
+          <div className="watercolor-texture" />
+          <div className="watercolor-bleed" />
+        </>
+      )}
+    </div>
+  );
+}
+
+export default function CountriesPage() {
+  return (
+    <main className="min-h-[100dvh] bg-cream pt-32 pb-40 px-6 md:px-12">
+      <div className="max-w-[1400px] mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-28"
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] as const }}
+          className="mb-28"
         >
-          <p className="text-forest/45 text-[10px] tracking-[0.4em] uppercase mb-6 font-light">
+          <p className="text-forest/45 text-[11px] tracking-[0.35em] uppercase mb-4 font-medium">
             География вкуса
           </p>
           <h1
-            className="text-forest/85 text-4xl md:text-5xl font-light tracking-[0.06em]"
+            className="text-forest text-4xl md:text-5xl font-light tracking-tighter leading-none max-w-[14ch]"
             style={{ fontFamily: "'Cormorant Garamond', Garamond, Georgia, serif" }}
           >
             Семь стран
           </h1>
         </motion.div>
 
-        <div className="space-y-40">
+        <div className="space-y-32 md:space-y-40">
           {countries.map((country, i) => (
             <motion.section
               key={country.slug}
@@ -47,40 +99,18 @@ export default function CountriesPage() {
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.8, delay: i * 0.08 }}
-              className={`grid md:grid-cols-2 gap-16 items-center ${
-                i % 2 === 1 ? "md:grid-flow-dense" : ""
-              }`}
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] as const, delay: i * 0.06 }}
+              className="grid md:grid-cols-2 gap-12 md:gap-20 items-center"
             >
-              {/* Image — watercolor style */}
-              <div
-                className={`aspect-[4/3] bg-ivory overflow-hidden relative ${
-                  i % 2 === 1 ? "md:col-start-2" : ""
-                }`}
-              >
-                {images[country.slug] ? (
-                  <>
-                    <img
-                      src={images[country.slug]}
-                      alt={country.title}
-                      loading="lazy"
-                      className="watercolor-img absolute inset-0 w-full h-full object-cover"
-                    />
-                    <div className="watercolor-wash-overlay" />
-                    <div className="watercolor-texture" />
-                    <div className="watercolor-bleed" />
-                  </>
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center" role="status" aria-label="Загрузка изображения">
-                    <div className="w-6 h-6 border border-forest/10 rounded-full animate-spin border-t-forest/25" />
-                  </div>
-                )}
-              </div>
+              <CountryImage
+                query={country.imageQuery}
+                alt={country.title}
+                side={i % 2 === 1 ? "right" : "left"}
+              />
 
-              {/* Text — editorial, breathing room */}
-              <div className={i % 2 === 1 ? "md:col-start-1 md:row-start-1" : ""}>
+              <div>
                 <h2
-                  className="text-forest/85 text-2xl md:text-3xl font-light tracking-[0.08em] mb-4"
+                  className="text-forest text-2xl md:text-3xl font-light tracking-tighter mb-4"
                   style={{ fontFamily: "'Cormorant Garamond', Garamond, Georgia, serif" }}
                 >
                   {country.name}
@@ -91,7 +121,7 @@ export default function CountriesPage() {
                 <p className="text-forest/55 text-sm leading-relaxed max-w-md mb-6 font-light">
                   {country.description}
                 </p>
-                <p className="text-forest/45 text-[10px] tracking-[0.1em] uppercase font-light">
+                <p className="text-forest/45 text-[10px] tracking-[0.15em] uppercase font-medium">
                   {country.teas}
                 </p>
               </div>
@@ -103,11 +133,11 @@ export default function CountriesPage() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          className="text-center mt-40"
+          className="mt-32 md:mt-40"
         >
           <Link
             href="/#catalog"
-            className="inline-flex items-center gap-2 text-forest/40 hover:text-forest/60 text-[10px] tracking-[0.2em] uppercase font-light transition-colors duration-500"
+            className="inline-flex items-center gap-2 text-forest/40 hover:text-forest/60 text-[11px] tracking-[0.2em] uppercase font-medium transition-colors duration-500"
           >
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M19 12H5M12 19l-7-7 7-7" />
