@@ -24,6 +24,18 @@ export default function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
   const handleMenuKey = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Escape" && menuOpen) setMenuOpen(false);
   }, [menuOpen]);
@@ -42,7 +54,7 @@ export default function Header() {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 120, damping: 20 }}
-        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 md:px-12 py-6 transition-all duration-700 ${
+        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 md:px-12 py-6 safe-top transition-all duration-700 ${
           darkBg
             ? "bg-transparent"
             : "bg-cream/95 shadow-[0_1px_0_rgba(31,58,52,0.04)]"

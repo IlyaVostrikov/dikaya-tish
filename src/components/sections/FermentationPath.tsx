@@ -125,88 +125,139 @@ export default function FermentationPath() {
           От свежести до глубины
         </h2>
 
-        {/* Timeline */}
-        <div className="relative mb-24 overflow-x-auto md:overflow-visible pb-2">
-          {/* Connecting line */}
-          <div className="absolute top-[19px] left-[8%] right-[8%] h-px bg-forest/10" />
+        {/* Timeline — horizontal on desktop, vertical on mobile */}
+        <div className="relative mb-24">
+          {/* Desktop: horizontal line + circles */}
+          <div className="hidden md:block">
+            <div className="absolute top-[19px] left-[8%] right-[8%] h-px bg-forest/10" />
+            <div className="relative flex justify-between items-start">
+              {stages.map((stage, i) => {
+                const active = activeStage === i;
+                const progress = stage.oxidation / 100;
+                return (
+                  <div key={stage.name} className="relative flex flex-col items-center" style={{ width: "16.66%" }}>
+                    <div className="relative">
+                      <svg width="48" height="48" viewBox="0 0 48 48" className="absolute -top-[14px] -left-[14px]">
+                        <circle
+                          cx="24" cy="24" r="19"
+                          fill="none"
+                          stroke="rgba(31,58,52,0.05)"
+                          strokeWidth="1.2"
+                        />
+                        {active && (
+                          <motion.circle
+                            cx="24" cy="24" r="19"
+                            fill="none"
+                            stroke={stage.color}
+                            strokeWidth="2"
+                            strokeDasharray={`${2 * Math.PI * 19 * progress} ${2 * Math.PI * 19 * (1 - progress)}`}
+                            strokeDashoffset={2 * Math.PI * 19 * 0.25}
+                            strokeLinecap="round"
+                            initial={{ pathLength: 0, opacity: 0 }}
+                            animate={{ pathLength: progress, opacity: 1 }}
+                            transition={{ duration: 0.8, ease: "easeOut" }}
+                            style={{ transform: "rotate(-90deg)", transformOrigin: "center" }}
+                          />
+                        )}
+                        {active && (
+                          <motion.circle
+                            cx="24" cy="24" r="19"
+                            fill="none"
+                            stroke={stage.color}
+                            strokeWidth="1.5"
+                            initial={{ opacity: 0.6, r: 19 }}
+                            animate={{ opacity: 0, r: 30 }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+                          />
+                        )}
+                      </svg>
+                      <motion.button
+                        onClick={() => setActiveStage(active ? null : i)}
+                        aria-label={`${stage.name}: ${stage.oxidation}% окисление`}
+                        aria-expanded={active}
+                        className={`relative z-10 w-11 h-11 rounded-full border-2 transition-all duration-500 flex items-center justify-center ${
+                          active ? "shadow-lg" : ""
+                        }`}
+                        style={{
+                          backgroundColor: active ? stage.color : "var(--color-cream)",
+                          borderColor: active ? stage.color : "rgba(31,58,52,0.15)",
+                        }}
+                        whileHover={{
+                          scale: 1.3,
+                          boxShadow: `0 0 16px ${stage.color}40`,
+                        }}
+                        whileTap={{ scale: 0.85 }}
+                      >
+                        <span
+                          className="w-[14px] h-[14px] rounded-full"
+                          style={{ backgroundColor: active ? "rgba(255,255,255,0.3)" : "rgba(31,58,52,0.12)" }}
+                        />
+                      </motion.button>
+                    </div>
 
-          <div className="relative flex justify-between items-start min-w-[600px] md:min-w-0">
+                    <span
+                      className="mt-5 text-xs tracking-[0.12em] whitespace-nowrap transition-all duration-500 font-medium"
+                      style={{ color: active ? stage.color : "rgba(31,58,52,0.55)" }}
+                    >
+                      {stage.name}
+                    </span>
+
+                    <span className={`text-xs mt-1 font-medium transition-colors duration-500 ${
+                      active ? "text-forest/70" : "text-forest/45"
+                    }`}>
+                      {stage.oxidation}%
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Mobile: vertical timeline with connecting bar */}
+          <div className="md:hidden space-y-0">
             {stages.map((stage, i) => {
               const active = activeStage === i;
-              const progress = stage.oxidation / 100;
               return (
-                <div key={stage.name} className="relative flex flex-col items-center" style={{ width: "16.66%" }}>
-                  <div className="relative">
-                    <svg width="48" height="48" viewBox="0 0 48 48" className="absolute -top-[14px] -left-[14px]">
-                      <circle
-                        cx="24" cy="24" r="19"
-                        fill="none"
-                        stroke="rgba(31,58,52,0.05)"
-                        strokeWidth="1.2"
-                      />
-                      {active && (
-                        <motion.circle
-                          cx="24" cy="24" r="19"
-                          fill="none"
-                          stroke={stage.color}
-                          strokeWidth="2"
-                          strokeDasharray={`${2 * Math.PI * 19 * progress} ${2 * Math.PI * 19 * (1 - progress)}`}
-                          strokeDashoffset={2 * Math.PI * 19 * 0.25}
-                          strokeLinecap="round"
-                          initial={{ pathLength: 0, opacity: 0 }}
-                          animate={{ pathLength: progress, opacity: 1 }}
-                          transition={{ duration: 0.8, ease: "easeOut" }}
-                          style={{ transform: "rotate(-90deg)", transformOrigin: "center" }}
-                        />
-                      )}
-                      {active && (
-                        <motion.circle
-                          cx="24" cy="24" r="19"
-                          fill="none"
-                          stroke={stage.color}
-                          strokeWidth="1.5"
-                          initial={{ opacity: 0.6, r: 19 }}
-                          animate={{ opacity: 0, r: 30 }}
-                          transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
-                        />
-                      )}
-                    </svg>
-                    <motion.button
-                      onClick={() => setActiveStage(active ? null : i)}
-                      aria-label={`${stage.name}: ${stage.oxidation}% окисление`}
-                      aria-expanded={active}
-                      className={`relative z-10 w-11 h-11 rounded-full border-2 transition-all duration-500 flex items-center justify-center ${
-                        active ? "shadow-lg" : ""
-                      }`}
-                      style={{
-                        backgroundColor: active ? stage.color : "var(--color-cream)",
-                        borderColor: active ? stage.color : "rgba(31,58,52,0.15)",
-                      }}
-                      whileHover={{
-                        scale: 1.3,
-                        boxShadow: `0 0 16px ${stage.color}40`,
-                      }}
-                      whileTap={{ scale: 0.85 }}
-                    >
-                      <span
-                        className="w-[14px] h-[14px] rounded-full"
-                        style={{ backgroundColor: active ? "rgba(255,255,255,0.3)" : "rgba(31,58,52,0.12)" }}
-                      />
-                    </motion.button>
-                  </div>
-
-                  <span
-                    className="mt-5 text-xs tracking-[0.12em] whitespace-nowrap transition-all duration-500 font-medium"
-                    style={{ color: active ? stage.color : "rgba(31,58,52,0.55)" }}
+                <div key={stage.name} className="flex items-center gap-4 py-2.5">
+                  <motion.button
+                    onClick={() => setActiveStage(active ? null : i)}
+                    aria-label={`${stage.name}: ${stage.oxidation}% окисление`}
+                    className={`relative z-10 w-12 h-12 min-w-[48px] rounded-full border-2 transition-all duration-500 flex items-center justify-center ${
+                      active ? "shadow-lg" : ""
+                    }`}
+                    style={{
+                      backgroundColor: active ? stage.color : "var(--color-cream)",
+                      borderColor: active ? stage.color : "rgba(31,58,52,0.15)",
+                    }}
+                    whileTap={{ scale: 0.85 }}
                   >
-                    {stage.name}
-                  </span>
+                    <span
+                      className="w-[12px] h-[12px] rounded-full"
+                      style={{ backgroundColor: active ? "rgba(255,255,255,0.3)" : "rgba(31,58,52,0.12)" }}
+                    />
+                  </motion.button>
 
-                  <span className={`text-xs mt-1 font-medium transition-colors duration-500 ${
-                    active ? "text-forest/70" : "text-forest/45"
-                  }`}>
-                    {stage.oxidation}%
-                  </span>
+                  {/* Oxidation bar */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline justify-between mb-1">
+                      <span
+                        className="text-sm tracking-[0.08em] font-medium"
+                        style={{ color: active ? stage.color : "rgba(31,58,52,0.65)" }}
+                      >
+                        {stage.name}
+                      </span>
+                      <span className="text-xs font-medium text-forest/45">{stage.oxidation}%</span>
+                    </div>
+                    <div className="h-[2px] bg-forest/06 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{
+                          width: `${stage.oxidation}%`,
+                          backgroundColor: stage.color,
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
               );
             })}
