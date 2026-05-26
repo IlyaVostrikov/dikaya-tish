@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use, useCallback } from "react";
+import { useState, use, useCallback } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -9,81 +9,28 @@ import { products } from "@/data/products";
 import { useCartStore } from "@/lib/store";
 import { formatPrice } from "@/lib/format";
 import { flyToCart } from "@/lib/fly-store";
-
-type ImageState = { src: string | null; status: "loading" | "loaded" | "error" };
-
-function fetchImage(query: string): Promise<string | null> {
-  return fetch(`/api/unsplash?query=${encodeURIComponent(query)}`)
-    .then((r) => r.json())
-    .then((d) => d.url ?? null)
-    .catch(() => null);
-}
-
-function ImagePlaceholder() {
-  return (
-    <div className="absolute inset-0 bg-gradient-to-br from-ivory via-cream to-mist/20 flex items-center justify-center">
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_1.8s_ease-in-out_infinite]" />
-    </div>
-  );
-}
+import { getLocalImage } from "@/lib/images";
 
 export default function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const product = products.find((p) => p.slug === slug);
   const [quantity, setQuantity] = useState(1);
-  const [images, setImages] = useState<ImageState[]>([]);
   const [activeImg, setActiveImg] = useState(0);
+  const [imgErrors, setImgErrors] = useState<Set<number>>(new Set());
   const addItem = useCartStore((s) => s.addItem);
 
-  useEffect(() => {
-    if (!product) return;
-    const queries = [product.imageQuery, ...product.gallery];
-    const initial: ImageState[] = queries.map(() => ({ src: null, status: "loading" }));
-    setImages(initial);
-    setActiveImg(0);
-
-    if (product.skuImage) {
-      setImages((prev) => {
-        const next = [...prev];
-        next[0] = { src: product.skuImage!, status: "loaded" };
-        return next;
-      });
-    } else {
-      fetchImage(queries[0]).then((url) => {
-        setImages((prev) => {
-          const next = [...prev];
-          next[0] = { src: url, status: url ? "loaded" : "error" };
-          return next;
-        });
-      });
-    }
-  }, [product]);
-
-  const loadImage = useCallback(
-    (i: number) => {
-      if (!product) return;
-      const queries = [product.imageQuery, ...product.gallery];
-      if (images[i]?.status === "loaded") return;
-      fetchImage(queries[i]).then((url) => {
-        setImages((prev) => {
-          const next = [...prev];
-          next[i] = { src: url, status: url ? "loaded" : "error" };
-          return next;
-        });
-      });
-    },
-    [product, images]
-  );
-
-  const goToImage = useCallback(
-    (i: number) => {
-      if (i !== activeImg) loadImage(i);
-      setActiveImg(i);
-    },
-    [activeImg, loadImage]
-  );
-
   if (!product) notFound();
+
+  const allQueries = [product.imageQuery, ...product.gallery];
+  const allImages = allQueries.map((q, i) => {
+    if (i === 0 && product.skuImage) return product.skuImage;
+    return getLocalImage(q);
+  });
+
+  const goToImage = useCallback((i: number) => setActiveImg(i), []);
+  const markError = useCallback((i: number) => {
+    setImgErrors((prev) => new Set(prev).add(i));
+  }, []);
 
   return (
     <main className="min-h-[100dvh] bg-cream pt-32 pb-40 px-6 md:px-12">
@@ -106,41 +53,38 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
             className="relative"
           >
             <div className="aspect-[3/4] bg-ivory border border-forest/[0.03] overflow-hidden relative">
-              {images[activeImg]?.status === "loading" && <ImagePlaceholder />}
-
-              {images[activeImg]?.status === "error" && (
+              {allImages[activeImg] && !imgErrors.has(activeImg) ? (
+                <motion.img
+                  key={activeImg}
+                  src={allImages[activeImg]}
+                  alt={`${product.name} — фото ${activeImg + 1}`}
+                  decoding="async"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] as const }}
+                  onError={() => markError(activeImg)}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              ) : (
                 <div className="absolute inset-0 bg-gradient-to-br from-mist/30 via-ivory to-sage/20 flex items-center justify-center">
                   <span className="text-forest/25 text-[10px] tracking-[0.15em] uppercase">
                     Изображение недоступно
                   </span>
                 </div>
               )}
-
-              {images[activeImg]?.status === "loaded" && images[activeImg].src && (
-                <motion.img
-                  key={activeImg}
-                  src={images[activeImg].src}
-                  alt={`${product.name} — фото ${activeImg + 1}`}
-                  decoding="async"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] as const }}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-              )}
             </div>
 
-            {images.length > 1 && (
+            {allImages.length > 1 && (
               <div className="flex justify-center gap-2 mt-4">
-                {images.map((img, i) => (
+                {allImages.map((src, i) => (
                   <button
                     key={i}
                     onClick={() => goToImage(i)}
-                    aria-label={`Фото ${i + 1} из ${images.length}`}
+                    aria-label={`Фото ${i + 1} из ${allImages.length}`}
                     className={`w-2 h-2 rounded-full transition-all duration-500 ${
                       i === activeImg
                         ? "bg-forest/60 scale-110"
-                        : img.status === "error"
+                        : imgErrors.has(i)
                           ? "bg-forest/10"
                           : "bg-forest/15 hover:bg-forest/25"
                     }`}

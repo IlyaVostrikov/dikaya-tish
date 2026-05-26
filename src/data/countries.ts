@@ -1,7 +1,7 @@
 export interface Country {
   slug: string;
   name: string;
-  flag: string;
+  countryCode: string;
   title: string;
   description: string;
   teas: string; // comma-separated tea types
@@ -12,7 +12,7 @@ export const countries: Country[] = [
   {
     slug: "russia",
     name: "Россия",
-    flag: "🇷🇺",
+    countryCode: "RU",
     title: "Самый северный чай в мире",
     description:
       "Краснодарский край — единственное место в России, где растёт чай. Горные склоны, южное солнце и холодные ночи создают уникальный вкус — более мягкий, чем у южных собратьев.",
@@ -22,7 +22,7 @@ export const countries: Country[] = [
   {
     slug: "china",
     name: "Китай",
-    flag: "🇨🇳",
+    countryCode: "CN",
     title: "Родина чая",
     description:
       "Пять тысяч лет чайной культуры. Юньнань — колыбель диких чайных деревьев. Фуцзянь — утончённые улуны и белые чаи. Каждая провинция — отдельная вселенная вкуса.",
@@ -32,7 +32,7 @@ export const countries: Country[] = [
   {
     slug: "japan",
     name: "Япония",
-    flag: "🇯🇵",
+    countryCode: "JP",
     title: "Тень и точность",
     description:
       "Японский чай — это ритуал. Затенённые плантации, паровая фиксация, порошковая матча. Каждый шаг отточен веками.",
@@ -42,7 +42,7 @@ export const countries: Country[] = [
   {
     slug: "taiwan",
     name: "Тайвань",
-    flag: "🇹🇼",
+    countryCode: "TW",
     title: "Горный туман и улуны",
     description:
       "Высокогорные плантации над облаками. Алишань, Лишань, Дун Дин — имена, которые знает каждый ценитель улуна.",
@@ -52,7 +52,7 @@ export const countries: Country[] = [
   {
     slug: "africa",
     name: "Африка",
-    flag: "🌍",
+    countryCode: "ZA",
     title: "Экваториальная сила",
     description:
       "Кения и Малави — мощные, терпкие чаи с вулканических почв. Экваториальное солнце даёт рекордные урожаи и глубокий вкус.",
@@ -62,7 +62,7 @@ export const countries: Country[] = [
   {
     slug: "india",
     name: "Индия",
-    flag: "🇮🇳",
+    countryCode: "IN",
     title: "Дарджилинг и Ассам",
     description:
       "Гималайские склоны Дарджилинга — «шампанское среди чаёв». Долина Ассама — родина крепкого чёрного чая. Два полюса одной страны.",
@@ -72,7 +72,7 @@ export const countries: Country[] = [
   {
     slug: "france",
     name: "Франция",
-    flag: "🇫🇷",
+    countryCode: "FR",
     title: "Прованские травы",
     description:
       "Лавандовые поля Прованса, альпийские луга и средиземноморские травы. Французская традиция травяных сборов — это искусство наслаждения и заботы о себе.",

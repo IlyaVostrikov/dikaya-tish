@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import { useState, useRef } from "react";
+import { motion, AnimatePresence, useScroll, useSpring, useTransform } from "framer-motion";
+import { getLocalImage } from "@/lib/images";
 
 interface Stage {
   name: string;
@@ -77,18 +78,8 @@ const stages: Stage[] = [
 ];
 
 function StageImage({ query }: { query: string }) {
-  const [src, setSrc] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch(`/api/unsplash?query=${encodeURIComponent(query)}`)
-      .then((r) => r.json())
-      .then((d) => { if (d.url && !cancelled) setSrc(d.url); })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [query]);
-
+  const src = getLocalImage(query);
   if (!src) return null;
 
   return (
@@ -115,26 +106,27 @@ export default function FermentationPath() {
     offset: ["start end", "end start"],
   });
 
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+  const rawOpacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+  const opacity = useSpring(rawOpacity, { stiffness: 80, damping: 25 });
 
   return (
     <section
       ref={ref}
-      className="relative min-h-screen bg-cream flex items-center py-40 px-6 overflow-hidden"
+      className="relative min-h-[100dvh] bg-cream flex items-center py-32 md:py-40 px-6 md:px-12 overflow-hidden"
     >
-      <motion.div style={{ opacity }} className="max-w-6xl mx-auto w-full">
-        <p className="text-forest/50 text-xs tracking-[0.35em] uppercase mb-8 text-center font-light">
+      <motion.div style={{ opacity }} className="max-w-[1400px] mx-auto w-full">
+        <p className="text-forest/50 text-[11px] tracking-[0.35em] uppercase mb-6 font-medium">
           Путь чайного листа
         </p>
         <h2
-          className="text-forest text-3xl md:text-4xl lg:text-5xl font-light tracking-[0.04em] mb-28 text-center"
+          className="text-forest text-3xl md:text-5xl lg:text-6xl font-light tracking-tighter leading-none mb-24 max-w-[18ch]"
           style={{ fontFamily: "'Cormorant Garamond', Garamond, Georgia, serif" }}
         >
           От свежести до глубины
         </h2>
 
         {/* Timeline */}
-        <div className="relative mb-24 max-w-4xl mx-auto overflow-x-auto md:overflow-visible pb-2">
+        <div className="relative mb-24 overflow-x-auto md:overflow-visible pb-2">
           {/* Connecting line */}
           <div className="absolute top-[19px] left-[8%] right-[8%] h-px bg-forest/10" />
 
@@ -229,8 +221,8 @@ export default function FermentationPath() {
               initial={{ opacity: 0, y: 30, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -15, scale: 0.98 }}
-              transition={{ duration: 0.5, ease: [0.25, 1, 0.5, 1] }}
-              className="max-w-2xl mx-auto"
+              transition={{ duration: 0.5, ease: [0.25, 1, 0.5, 1] as const }}
+              className="max-w-2xl"
             >
               <div className="relative border border-forest/10 bg-white watercolor-wash overflow-hidden">
                 {/* Photo of processing */}
@@ -297,7 +289,7 @@ export default function FermentationPath() {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-center text-forest/45 text-sm mt-16 tracking-[0.1em] font-light"
+            className="text-forest/45 text-sm mt-16 tracking-[0.1em] font-light"
           >
             Выберите этап на шкале, чтобы узнать детали
           </motion.p>

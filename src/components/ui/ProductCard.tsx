@@ -1,41 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useCartStore } from "@/lib/store";
 import { formatPrice } from "@/lib/format";
+import { getLocalImage } from "@/lib/images";
 import type { TeaProduct } from "@/data/products";
 
 export default function ProductCard({ product }: { product: TeaProduct }) {
-  const [imgSrc, setImgSrc] = useState<string | null>(product.skuImage ?? null);
   const [imgError, setImgError] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
 
-  useEffect(() => {
-    if (product.skuImage && !imgError) return;
-    let cancelled = false;
-    fetch(`/api/unsplash?query=${encodeURIComponent(product.imageQuery)}`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.url && !cancelled) setImgSrc(d.url);
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [product.imageQuery, product.skuImage, imgError]);
+  const imgSrc = product.skuImage ?? getLocalImage(product.imageQuery);
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     addItem(product.slug, product.name, product.price);
-  };
-
-  const handleImgError = () => {
-    if (product.skuImage && !imgError) {
-      setImgError(true);
-      return;
-    }
-    setImgSrc(null);
   };
 
   return (
@@ -50,18 +32,17 @@ export default function ProductCard({ product }: { product: TeaProduct }) {
       >
         {/* Image */}
         <div className="aspect-[3/4] overflow-hidden bg-ivory relative">
-          {imgSrc ? (
+          {imgSrc && !imgError ? (
             <img
               src={imgSrc}
               alt={product.name}
               loading="lazy"
-              onError={handleImgError}
+              onError={() => setImgError(true)}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
           ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-              <div className="w-8 h-8 border border-forest/10 rounded-full animate-spin border-t-forest/30" />
-              <span className="text-forest/25 text-[9px] tracking-[0.15em] uppercase">Загрузка</span>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-mist/30 via-ivory to-sage/20">
+              <span className="text-forest/25 text-[10px] tracking-[0.15em] uppercase">Изображение недоступно</span>
             </div>
           )}
 

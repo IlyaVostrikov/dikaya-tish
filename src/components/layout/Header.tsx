@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCartStore } from "@/lib/store";
 import AnimatedLogo from "@/components/ui/AnimatedLogo";
 import CartSidebar from "./CartSidebar";
+import CartFlyDot from "@/components/ui/CartFlyDot";
 
 export default function Header() {
   const [cartOpen, setCartOpen] = useState(false);
@@ -14,6 +15,7 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const totalItems = useCartStore((s) => s.totalItems());
+  const cartBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -39,7 +41,7 @@ export default function Header() {
       <motion.header
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        transition={{ duration: 0.8, ease: [0.25, 1, 0.5, 1] }}
+        transition={{ type: "spring", stiffness: 120, damping: 20 }}
         className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 md:px-12 py-6 transition-all duration-700 ${
           darkBg
             ? "bg-transparent"
@@ -56,17 +58,27 @@ export default function Header() {
           <Link href="/#catalog" className="transition-colors duration-500">
             Чай
           </Link>
+          <Link href="/#gongfu" className="transition-colors duration-500">
+            Гун Фу Ча
+          </Link>
           <Link href="/#philosophy" className="transition-colors duration-500">
             Философия
           </Link>
           <Link href="/countries" className="transition-colors duration-500">
             Страны
           </Link>
+          <Link href="/#creator" className="transition-colors duration-500">
+            Создатель
+          </Link>
+          <Link href="/#contact" className="transition-colors duration-500">
+            Контакты
+          </Link>
         </nav>
 
         {/* Right: cart + mobile menu */}
         <div className="flex items-center gap-5">
           <button
+            ref={cartBtnRef}
             onClick={() => setCartOpen(true)}
             aria-label="Открыть корзину"
             className={`relative transition-colors duration-500 min-w-[44px] min-h-[44px] flex items-center justify-center ${navTextColor}`}
@@ -80,6 +92,7 @@ export default function Header() {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   exit={{ scale: 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 22 }}
                   className={`absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1 text-cream text-[11px] font-medium rounded-full flex items-center justify-center transition-colors duration-700 ${
                     darkBg ? "bg-white/80 text-forest" : "bg-forest"
                   }`}
@@ -115,18 +128,23 @@ export default function Header() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] as const }}
             className="fixed inset-0 z-40 bg-cream/98 flex flex-col items-center justify-center gap-10 md:hidden"
           >
             <nav className="flex flex-col items-center gap-8 text-forest/65 text-lg tracking-[0.15em] uppercase font-light font-serif">
               <Link href="/#catalog" onClick={() => setMenuOpen(false)}>Чай</Link>
+              <Link href="/#gongfu" onClick={() => setMenuOpen(false)}>Гун Фу Ча</Link>
               <Link href="/#philosophy" onClick={() => setMenuOpen(false)}>Философия</Link>
               <Link href="/countries" onClick={() => setMenuOpen(false)}>Страны</Link>
+              <Link href="/#creator" onClick={() => setMenuOpen(false)}>Создатель</Link>
+              <Link href="/#contact" onClick={() => setMenuOpen(false)}>Контакты</Link>
             </nav>
           </motion.div>
         )}
       </AnimatePresence>
 
       <CartSidebar open={cartOpen} onClose={() => setCartOpen(false)} />
+      <CartFlyDot cartRef={cartBtnRef} />
     </>
   );
 }
