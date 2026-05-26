@@ -5,17 +5,35 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import type { Country } from "@/data/countries";
 
+function CountryPlaceholder() {
+  return (
+    <div className="absolute inset-0 bg-gradient-to-br from-ivory via-cream to-mist/20">
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_1.8s_ease-in-out_infinite]" />
+    </div>
+  );
+}
+
 export default function CountryCard({ country, index }: { country: Country; index: number }) {
   const [imgSrc, setImgSrc] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setError(false);
     fetch(`/api/unsplash?query=${encodeURIComponent(country.imageQuery)}`)
       .then((r) => r.json())
       .then((d) => {
-        if (d.url && !cancelled) setImgSrc(d.url);
+        if (!cancelled && d.url) setImgSrc(d.url);
+        if (!cancelled && !d.url) setError(true);
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) setError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
     return () => { cancelled = true; };
   }, [country.imageQuery]);
 
@@ -28,29 +46,32 @@ export default function CountryCard({ country, index }: { country: Country; inde
         transition={{ duration: 0.7, delay: index * 0.1 }}
         className="watercolor-card aspect-[3/4]"
       >
-        {/* Watercolor bleed — soft edge glow */}
         <div className="watercolor-bleed" />
 
-        {/* Photo — processed as watercolor base */}
+        {loading && <CountryPlaceholder />}
+
+        {error && !imgSrc && (
+          <div className="absolute inset-0 bg-gradient-to-br from-mist/30 via-ivory to-sage/20 flex items-center justify-center">
+            <span className="text-forest/25 text-[10px] tracking-[0.15em] uppercase">Нет фото</span>
+          </div>
+        )}
+
         {imgSrc && (
           <motion.img
             src={imgSrc}
             alt={country.title}
             loading="lazy"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6 }}
             className="watercolor-img absolute inset-0 w-full h-full object-cover"
           />
         )}
 
-        {/* Watercolor wash — pigment bleeding */}
         <div className="watercolor-wash-overlay" />
-
-        {/* Watercolor texture — paper grain */}
         <div className="watercolor-texture" />
-
-        {/* Content fade for readability */}
         <div className="watercolor-content-fade" />
 
-        {/* Text content */}
         <div className="absolute inset-0 z-10 p-6 flex flex-col justify-end">
           <h3
             className="text-forest/85 text-xl font-light tracking-[0.08em]"
