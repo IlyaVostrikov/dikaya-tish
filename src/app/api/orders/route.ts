@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -22,6 +21,10 @@ async function notifyTelegram(text: string) {
   } catch {
     // Notification failure should not break the order
   }
+}
+
+function escapeHtml(s: string) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 export async function POST(request: Request) {
@@ -49,50 +52,22 @@ export async function POST(request: Request) {
       0
     );
 
-    // Look up product IDs by slug for the relation
-    const slugs = items.map((i: { slug: string }) => i.slug);
-    const products = await prisma.product.findMany({
-      where: { slug: { in: slugs } },
-    });
-    const productBySlug = new Map(products.map((p) => [p.slug, p.id]));
-
-    const order = await prisma.order.create({
-      data: {
-        name,
-        phone,
-        email,
-        address,
-        comment: comment || null,
-        total,
-        items: {
-          create: items.map(
-            (i: { slug: string; quantity: number; price: number }) => ({
-              productId: productBySlug.get(i.slug) ?? 0,
-              quantity: i.quantity,
-              price: i.price,
-            })
-          ),
-        },
-      },
-      include: { items: true },
-    });
-
-    // Build Telegram notification
+    // Build Telegram notification (no DB on Vercel — just notify)
     const itemsList = items
       .map(
-        (i: { slug: string; quantity: number; price: number }) =>
-          `— ${i.slug}: ${i.quantity} шт × ${i.price}₽ = ${i.quantity * i.price}₽`
+        (i: { slug: string; name?: string; quantity: number; price: number }) =>
+          `— ${i.name || i.slug}: ${i.quantity} шт × ${i.price}₽ = ${i.quantity * i.price}₽`
       )
       .join("\n");
 
     const message = [
-      `🫖 <b>Новый заказ #${order.id}</b>`,
+      `🫖 <b>Новый заказ</b>`,
       ``,
-      `<b>Имя:</b> ${name}`,
-      `<b>Телефон:</b> ${phone}`,
-      `<b>Email:</b> ${email}`,
-      `<b>Адрес:</b> ${address}`,
-      comment ? `<b>Комментарий:</b> ${comment}` : "",
+      `<b>Имя:</b> ${escapeHtml(name)}`,
+      `<b>Телефон:</b> ${escapeHtml(phone)}`,
+      `<b>Email:</b> ${escapeHtml(email)}`,
+      `<b>Адрес:</b> ${escapeHtml(address)}`,
+      comment ? `<b>Комментарий:</b> ${escapeHtml(comment)}` : "",
       ``,
       `<b>Товары:</b>`,
       itemsList,
@@ -102,9 +77,9 @@ export async function POST(request: Request) {
       .filter(Boolean)
       .join("\n");
 
-    notifyTelegram(message);
+    await notifyTelegram(message);
 
-    return NextResponse.json({ orderId: order.id }, { status: 201 });
+    return NextResponse.json({ ok: true }, { status: 201 });
   } catch (err) {
     console.error("Order creation failed:", err);
     return NextResponse.json(
