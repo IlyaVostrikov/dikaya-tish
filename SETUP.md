@@ -68,12 +68,11 @@ Coolify сам найдёт localhost как сервер. Проверь что
 
 | Key | Value |
 |---|---|
-| `UNSPLASH_ACCESS_KEY` | `REDACTED` |
 | `DATABASE_URL` | `file:/app/prisma/dev.db` |
-| `TELEGRAM_BOT_TOKEN` | `REDACTED` |
-| `TELEGRAM_CHAT_ID` | `595769528` |
-| `ADMIN_EMAIL` | `ilyavostrikov90@gmail.com` |
-| `ADMIN_TELEGRAM` | `@Ilyavostrikov90` |
+| `TELEGRAM_BOT_TOKEN` | `<токен бота — хранится только вне Git>` |
+| `TELEGRAM_CHAT_ID` | `<chat id>` |
+| `ADMIN_EMAIL` | `<email>` |
+| `ADMIN_TELEGRAM` | `<@username>` |
 
 Важно: `DATABASE_URL` должен быть **абсолютным путём** (`file:/app/prisma/dev.db`), не относительным.
 

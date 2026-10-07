@@ -34,13 +34,14 @@ fi
 # ---------- 4. .env ----------
 echo "[4/7] Настройка .env..."
 cat > .env << 'ENVEOF'
-UNSPLASH_ACCESS_KEY=REDACTED
+# Секреты заполняются вручную — они НЕ хранятся в репозитории.
 DATABASE_URL="file:./dev.db"
-TELEGRAM_BOT_TOKEN=REDACTED
-TELEGRAM_CHAT_ID=595769528
-ADMIN_EMAIL=ilyavostrikov90@gmail.com
-ADMIN_TELEGRAM=@Ilyavostrikov90
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
+ADMIN_EMAIL=
+ADMIN_TELEGRAM=
 ENVEOF
+echo "  .env создан. Заполни TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, ADMIN_EMAIL, ADMIN_TELEGRAM вручную."
 
 # ---------- 5. Зависимости + Prisma ----------
 echo "[5/7] Установка зависимостей и сборка..."
@@ -86,7 +87,7 @@ nginx -t && systemctl reload nginx
 echo ""
 echo "Установка SSL-сертификата..."
 apt-get install -y certbot python3-certbot-nginx
-certbot --nginx -d dikaya-tish.ru -d www.dikaya-tish.ru --non-interactive --agree-tos --email ilyavostrikov90@gmail.com || echo "SSL отложен — запусти вручную: certbot --nginx"
+certbot --nginx -d dikaya-tish.ru -d www.dikaya-tish.ru --non-interactive --agree-tos --email your-email@example.com || echo "SSL отложен — запусти вручную: certbot --nginx"
 
 echo ""
 echo "============================================"

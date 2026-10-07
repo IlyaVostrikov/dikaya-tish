@@ -10,7 +10,7 @@ export interface TeaProduct {
   taste: string;
   brewTemp: string;
   brewTime: string;
-  /** Local SKU image path in /public. Falls back to imageQuery Unsplash if absent. */
+  /** Local SKU image path in /public. Falls back to getLocalImage(imageQuery) if absent. */
   skuImage: string | null;
   imageQuery: string;
   gallery: string[];

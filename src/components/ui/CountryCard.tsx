@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import type { Country } from "@/data/countries";
+import { getLocalImage } from "@/lib/images";
 
 function CountryPlaceholder() {
   return (
@@ -14,28 +15,8 @@ function CountryPlaceholder() {
 }
 
 export default function CountryCard({ country, index }: { country: Country; index: number }) {
-  const [imgSrc, setImgSrc] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(false);
-    fetch(`/api/unsplash?query=${encodeURIComponent(country.imageQuery)}`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (!cancelled && d.url) setImgSrc(d.url);
-        if (!cancelled && !d.url) setError(true);
-      })
-      .catch(() => {
-        if (!cancelled) setError(true);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => { cancelled = true; };
-  }, [country.imageQuery]);
+  const [failed, setFailed] = useState(false);
+  const src = getLocalImage(country.imageQuery);
 
   return (
     <Link href={`/countries#${country.slug}`}>
@@ -48,19 +29,14 @@ export default function CountryCard({ country, index }: { country: Country; inde
       >
         <div className="watercolor-bleed" />
 
-        {loading && <CountryPlaceholder />}
+        {(!src || failed) && <CountryPlaceholder />}
 
-        {error && !imgSrc && (
-          <div className="absolute inset-0 bg-gradient-to-br from-mist/30 via-ivory to-sage/20 flex items-center justify-center">
-            <span className="text-forest/25 text-[10px] tracking-[0.15em] uppercase">Нет фото</span>
-          </div>
-        )}
-
-        {imgSrc && (
+        {src && !failed && (
           <motion.img
-            src={imgSrc}
+            src={src}
             alt={country.title}
             loading="lazy"
+            onError={() => setFailed(true)}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6 }}
@@ -73,10 +49,7 @@ export default function CountryCard({ country, index }: { country: Country; inde
         <div className="watercolor-content-fade" />
 
         <div className="absolute inset-0 z-10 p-6 flex flex-col justify-end">
-          <h3
-            className="text-forest/85 text-xl font-light tracking-[0.08em]"
-            style={{ fontFamily: "'Cormorant Garamond', Garamond, Georgia, serif" }}
-          >
+          <h3 className="text-forest/85 text-xl font-light tracking-[0.08em]">
             {country.name}
           </h3>
           <p className="text-forest/65 text-xs mt-2 leading-relaxed font-light max-w-[90%]">
